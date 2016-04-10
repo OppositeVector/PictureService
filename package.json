@@ -1,0 +1,15 @@
+{
+  "name": "picture-service",
+  "version": "0.0.1",
+  "description": "A simple picture upload and download service",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Victor and Blah",
+  "license": "BSD-2-Clause",
+  "dependencies": {
+    "express": "~4.13.4",
+    "multer": "~1.1.0"
+  }
+}
