@@ -1,0 +1,33 @@
+<h1>Welcome to the Kloudless JS File Explorer</h1>
+
+<hr />
+
+<script>
+    var explorer = window.Kloudless.explorer({
+    app_id: 'iCZ_ICMy43H0NSoz0QbLvmyjzCHf2frAOPaBfWVgh9_vrFIM',
+    multiselect: true,
+    computer: true,
+});
+
+explorer.on('success', function(files) {
+    $("#file-info > pre").replaceWith('<pre>' + JSON.stringify(files, null, 2) + '</pre>');
+});
+
+explorer.choosify($('#chooser'));
+
+var files = [{
+    url: "https://s3-us-west-2.amazonaws.com/static-assets.kloudless.com/static/logo_white.png",
+    name: "kloudless-logo.png"
+}];
+
+explorer.savify($("#saver"), files);</script>
+
+<h2>Example</h2>
+
+<button id="chooser">Choose a file</button>
+
+<button id="saver">Save a file</button>
+
+<h3>File information</h3>
+
+<div id="file-info"><pre></pre></div>
