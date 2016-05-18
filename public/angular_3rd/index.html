@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html ng-app="firstApp">
+<head>
+    <link rel="stylesheet" type="text/css" href="include/style.css">
+    <script src="include/angular.min.js"></script>
+    <script src="include/First.js"></script>
+    <title>my First angular</title>
+</head>
+<body>
+    <div ng-controller="MyCtrl">
+
+        <div ng-repeat="step in stepsModel">
+            <img class="thumb" ng-src="{{step}}" />
+        </div>
+
+        <input type='file' ng-model-instant onchange="angular.element(this).scope().imageUpload(this)" />
+
+    </div>
+
+</body>
+</html>

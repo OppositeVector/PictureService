@@ -1,0 +1,30 @@
+<!Doctype html>
+<html ng-app>
+<head>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.1/angular.min.js"></script>
+<script type="text/javascript">
+    function YoutubeController($http,$scope){
+        $http.get('ytdata.json').success(function(ytdata) {
+                    $scope.data = ytdata;
+        });
+    }
+</script>
+<style type="text/css">
+    li{list-style:none;float:left;padding:20px;}
+    a{text-decoration:none;}
+</style>
+</head>
+<body>
+<div ng-controller="YoutubeController">
+    <ul>
+        <li ng-repeat="datum in data">
+            <a href="http://www.youtube.com/v/{{datum.id}}">
+                <img ng-src="{{datum.thumbUrl}}" />
+                <br />Id : {{datum.id}}
+                <br />Views : {{datum.views}}
+            </a>
+        </li>
+    </ul>
+</div>
+</body>
+</html>
