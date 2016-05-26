@@ -1,30 +1,29 @@
 <!Doctype html>
-<html ng-app>
+<html ng-app="pictureApp">
 <head>
-<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.1/angular.min.js"></script>
-<script type="text/javascript">
-    function YoutubeController($http,$scope){
-        $http.get('ytdata.json').success(function(ytdata) {
-                    $scope.data = ytdata;
-        });
-    }
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.1/angular.min.js"></script>
 </script>
-<style type="text/css">
-    li{list-style:none;float:left;padding:20px;}
-    a{text-decoration:none;}
-</style>
+<link rel="stylesheet" type="text/css" href="include/style.css">
+
 </head>
 <body>
-<div ng-controller="YoutubeController">
-    <ul>
-        <li ng-repeat="datum in data">
-            <a href="http://www.youtube.com/v/{{datum.id}}">
-                <img ng-src="{{datum.thumbUrl}}" />
-                <br />Id : {{datum.id}}
-                <br />Views : {{datum.views}}
-            </a>
-        </li>
-    </ul>
-</div>
+    <div ng-controller="ThumbnailController">
+        <ul>
+            <li ng-repeat="datum in data">
+                <a href="{{datum.url}}">
+                    <img height=100 width=100 ng-src="{{datum.url}}" />
+                    <!--<br />Id : {{datum.id}}
+                    <br />Views : {{datum.views}}-->
+                </a>
+            </li>
+        </ul>
+        <input type='file' onchange="angular.element(this).scope().imageUpload(this)" />
+    </div>
+    <div ng-controller="UploadController">
+        <a>{{name}}</a>
+        <button ng-click="TestButton()">SendRequestToServer</button>
+    </div>
+    
 </body>
+<script type="text/javascript" src="pictureClient.js"></script>
 </html>
