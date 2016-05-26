@@ -9,10 +9,13 @@
   "author": "Victor and Blah",
   "license": "BSD-2-Clause",
   "dependencies": {
+    "body-parser": "^1.15.1",
     "cors": "^2.7.1",
     "express": "~4.13.4",
+    "guid": "0.0.12",
     "knox": "^0.9.2",
     "mongoose": "^4.4.19",
-    "multer": "~1.1.0"
+    "multer": "~1.1.0",
+    "s3": "^4.4.0"
   }
 }

@@ -3,10 +3,29 @@ var express = require('express');
 var cors = require('cors');
 // var opsworks = require('opsworks');
 
-var knoxClient = require('knox').createClient({
-	key: process.env.S3_KEY,
-	secret: process.env.S3_SECRET,
-	bucket: 'vicspicturestorage'
+// var knoxClient = require('knox').createClient({
+// 	key: process.env.S3_KEY,
+// 	secret: process.env.S3_SECRET,
+// 	bucket: 'vicspicturestorage'
+// });
+
+var s3 = require('s3');
+var dbc = require("./dbcontroller");
+ 
+var client = s3.createClient({
+  maxAsyncS3: 20,     // this is the default 
+  s3RetryCount: 3,    // this is the default 
+  s3RetryDelay: 1000, // this is the default 
+  multipartUploadThreshold: 20971520, // this is the default (20 MB) 
+  multipartUploadSize: 15728640, // this is the default (15 MB) 
+  s3Options: {
+    accessKeyId: process.env.S3_KEY,
+    secretAccessKey: process.env.S3_SECRET,
+    signatureVersion: 'v4',
+    region: 'eu-central-1'
+    // any other options are passed to new AWS.S3() 
+    // See: http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Config.html#constructor-property 
+  },
 });
 
 function GetDateTime() {
@@ -72,9 +91,23 @@ app.get('/TestKnox', function(req, res) {
 });
 
 app.get('/Files', function(req, res) {
-	knoxClient.list({ prefix: 'my-prefix' }, function(err, data){
-		SendJson(data, res);
-	});
+	var params = { s3Params: {
+    	Bucket: "vicspicturestorage",
+    	// other options supported by putObject, except Body and ContentLength.
+    	// See: http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putObject-property
+  		}
+  	}
+	var listRequest = client.listObjects(params);
+	var files = [];
+	// knoxClient.list({ prefix: 'my-prefix' }, function(err, data){
+	// 	SendJson(data, res);
+	// });
+	listRequest.on("data", function(data) {
+		files.push(data);
+	})
+	listRequest.on("end", function() {
+		res.json(files);
+	})
 });
 
 var port = process.env.PORT || 3000;
