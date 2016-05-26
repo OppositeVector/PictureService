@@ -36,7 +36,7 @@ function GetDateTime() {
 function SendJson(object, res) {
 
 	res.header('Access-Control-Allow-Methods', 'GET, POST');
-	res.header('Access-Control-Allow-Origin', '*');
+	res.header('Access-Control-Allow-Origin', 'http://localhost');
 	res.header('Access-Control-Allow-Headers', 'Content-Type, *');
 	app.set('json spaces',4);
 	res.set('Content-Type','application/json');
