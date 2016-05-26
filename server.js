@@ -1,6 +1,6 @@
 var http = require('http');
 var express = require('express');
-var cors = require("cors");
+var cors = require('cors');
 // var opsworks = require('opsworks');
 
 var knoxClient = require('knox').createClient({
