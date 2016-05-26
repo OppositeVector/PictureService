@@ -50,7 +50,7 @@ app.get('/TestKnox', function(req, res) {
 	  , 'Content-Type': 'application/json'
 	});
 	knoxReq.on('response', function(knoxRes) {
-		res.json(knoxRes);
+		res.json(knoxRes.statusCode);
 	});
 	knoxReq.end(string);
 
