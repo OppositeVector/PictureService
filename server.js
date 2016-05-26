@@ -1,15 +1,12 @@
 var http = require('http');
 var express = require('express');
 var opsworks = require('opsworks');
-var AWS = require("aws-sdk");
 
 var knoxClient = require('knox').createClient({
 	key: process.env.S3_KEY,
 	secret: process.env.S3_SECRET,
 	bucket: 'vicspicturestorage'
 });
-
-
 
 function GetDateTime() {
 
