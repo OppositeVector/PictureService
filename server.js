@@ -45,16 +45,14 @@ app.get('/TestKnox', function(req, res) {
 
 	var object = { foo: "bar" };
 	var string = JSON.stringify(object);
-	var req = knoxClient.put('/test/obj.json', {
+	var knoxReq = knoxClient.put('/test/obj.json', {
 	    'Content-Length': Buffer.byteLength(string)
 	  , 'Content-Type': 'application/json'
 	});
-	req.on('response', function(res){
-	  if (200 == res.statusCode) {
-	    console.log('saved to %s', req.url);
-	  }
+	knoxReq.on('response', function(knoxRes) {
+		res.json(knoxRes);
 	});
-	req.end(string);
+	knoxReq.end(string);
 
 });
 
