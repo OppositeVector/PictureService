@@ -1,6 +1,6 @@
 var http = require('http');
 var express = require('express');
-var opsworks = require('opsworks');
+// var opsworks = require('opsworks');
 
 var knoxClient = require('knox').createClient({
 	key: process.env.S3_KEY,
@@ -59,7 +59,7 @@ app.get('/TestKnox', function(req, res) {
 app.get('/Files', function(req, res) {
 	knoxClient.list({ prefix: 'my-prefix' }, function(err, data){
 		res.json(data);
-	}
+	});
 });
 
 var port = process.env.PORT || 3000;
