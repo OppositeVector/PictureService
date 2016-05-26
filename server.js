@@ -1,5 +1,6 @@
 var http = require('http');
 var express = require('express');
+var cors = require("cors");
 // var opsworks = require('opsworks');
 
 var knoxClient = require('knox').createClient({
@@ -43,11 +44,12 @@ function SendJson(object, res) {
 	res.status(200);
 	// console.log(JSON.stringify(object));
 	res.json(object);
-
+	// res.send(object);
 }
 
 var app = express();
 
+app.use(cors());
 app.use('/', express.static('./public'));
 
 app.get('/pictures/:id', function(req, res) {
