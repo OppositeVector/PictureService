@@ -56,6 +56,12 @@ app.get('/TestKnox', function(req, res) {
 
 });
 
+app.get('/Files', function(req, res) {
+	knoxClient.list({ prefix: 'my-prefix' }, function(err, data){
+		res.json(data);
+	}
+});
+
 var port = process.env.PORT || 3000;
 
 app.listen(port);
