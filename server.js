@@ -33,6 +33,19 @@ function GetDateTime() {
 
 }
 
+function SendJson(object, res) {
+
+	res.header('Access-Control-Allow-Methods', 'GET, POST');
+	res.header('Access-Control-Allow-Origin', '*');
+	res.header('Access-Control-Allow-Headers', 'Content-Type, *');
+	app.set('json spaces',4);
+	res.set('Content-Type','application/json');
+	res.status(200);
+	// console.log(JSON.stringify(object));
+	res.json(object);
+
+}
+
 var app = express();
 
 app.use('/', express.static('./public'));
@@ -58,7 +71,7 @@ app.get('/TestKnox', function(req, res) {
 
 app.get('/Files', function(req, res) {
 	knoxClient.list({ prefix: 'my-prefix' }, function(err, data){
-		res.json(data);
+		SendJson(data, res);
 	});
 });
 
