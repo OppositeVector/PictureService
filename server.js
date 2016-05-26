@@ -44,7 +44,7 @@ app.get('/pictures/:id', function(req, res) {
 	var picId = req.params.id;
 });
 
-app.get('/TestKnox' function(req, res) {
+app.get('/TestKnox', function(req, res) {
 
 	var object = { foo: "bar" };
 	var string = JSON.stringify(object);
