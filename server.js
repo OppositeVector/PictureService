@@ -6,7 +6,8 @@ var multer = require('multer');
 var fs = require('fs');
 var GUID = require('guid');
 var bodyParser = require('body-parser');
-var memjs = require('memjs');
+var memcached = require('memcached');
+var memcachedBinary = require('memcached-binary');
 
 var bs = require('nodestalker'),
     client = bs.Client('ec2-54-93-124-121.eu-central-1.compute.amazonaws.com:11300');
@@ -26,7 +27,8 @@ var knoxClient = require('knox').createClient({
     region: 'us-standard'
 });
 
-var memjsClient = memjs.Client.create();
+var memcachedClient = new memcached('localhost:11211');
+var binaryClient = new memcachedBinary('localhost:11211', { use_buffers: true });
 
 function GetDateTime() {
 
@@ -73,12 +75,108 @@ app.use('/', express.static('./public'));
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.get('/pictures/:id/:type', function(req, res) {
-	var picId = req.params.id;
-	var picType = req.params.type;
-	memjsClient.get(picId + picType, function(pic) {
-		res.status(200);
-		res.send(pic);
-	})
+	var id = req.params.id;
+	var type = req.params.type;
+	var data = {  };
+
+	binaryClient.get(id + type, null, function(err, file) {
+		if(err) {
+			console.log(err);
+		} else {
+			if(file == null) {
+				dbc.GetMetadata(id, function(err, fileData) {
+					if(err) {
+						res.json({ result: 0, data: err });
+						return;
+					}
+					if(fileData != null) {
+						var file = new Buffer(fileData.size);
+						var count = 0;
+						knoxClient.get(fileData.s3Path + '/' + type).on('response', function(stream) {
+			                if(stream.statusCode == 200) {
+			                    stream.on('data', function(chunk) { 
+			                    	chunk.copy(file, count);
+			                    	count += chunk.length;
+			                    });
+			                    stream.on('end', function(chunk) { 
+			                    	var fixed = new Buffer(count);
+			                    	file.copy(fixed);
+									binaryClient.set(id + type, fixed, { lifetime: 300 }, function(err) {
+			                    		if(err) {
+			                    			res.json({ result: 0, data: 'Internal caching error, please try again later'});
+			                    			return;
+			                    		}
+			                    		memcachedClient.set(id + type + 'data', { mimetype: fileData.mimetype, size: count }, 300, function(err) {
+			                    			if(err) {
+			                    				res.json({ result: 0, data: 'Internal caching error, please try again later'});
+			                    				return;
+			                    			}
+			                    			res.setHeader('Content-Type', fileData.mimetype);
+			                    			res.setHeader('Content-Length', count);
+				                    		res.status(200);
+				                    		res.write(fixed);
+				                    		res.end();
+				                    		// res.end(file, 'binary');
+			                    		});
+		                    		});
+			                    });
+			                } else {
+			                    res.json({result: 0, data: 'Could not find file'});
+			                }
+			            }).end();
+					} else {
+						res.json({result: 0, data: 'Could not find file'});
+					}
+				});
+
+			} else {
+				// res.json(fileBlock);
+				memcachedClient.get(id + type + 'data', function(err, data) {
+					if(err) {
+						res.json({ result: 0, data: 'Internat caching error, please try again later'});
+						return;
+					}
+					console.log(file.constructor);
+					console.log(data);
+					res.status(200);
+					res.setHeader('Content-Type', data.mimetype);
+					res.setHeader('Content-Length', data.size);
+					res.write(file);
+					res.end();
+					// res.end(file, 'binary');
+					// res.json(file);
+				});
+				
+			}
+		}
+	});
+
+	// memcachedClient.set('test', 'asdfasdfasdfasdf', 600, function(err) {
+	// 	if(err) {
+	// 		console.log(err);
+	// 	} else {
+	// 		memcachedClient.get('test', function(err, val) {
+	// 			if(err) {
+	// 				console.log(err);
+	// 			} else {
+	// 				console.log(val);
+	// 			}
+	// 		});
+	// 	}
+	// });
+
+	// memjsClient.set("myVal", "alskdjfalskdjflkasjdflkajsdf", function(err, val){
+	// 	if(err) {
+	// 		console.log(err);
+	// 	}
+	// 	console.log("Saved " + val);
+	// }, 600);
+
+	// memjsClient.get("myVal", function(pic) {
+	// 	console.log(pic);
+	// 	res.status(200);
+	// 	res.send(pic);
+	// })
 });
 
 app.get('/TestKnox', function(req, res) {
@@ -121,7 +219,8 @@ app.put("/file", upload.single("image"), function(req, res) {
 		title: req.body.title,
 		author: req.body.author,
 		errs: [],
-		created: false
+		created: false,
+		size: req.file.size
 	}
 
 	var sp = fileData.name.split('.');

@@ -11,7 +11,8 @@ var metadata = Schema({
 	errs: [ Schema.Types.Mixed ],
 	extension: String,
 	s3Path: String,
-	created: Boolean
+	created: Boolean,
+	size: Number
 }, { collection: "metadata" });
 
 exports.schema = metadata;
