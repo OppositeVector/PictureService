@@ -1,7 +1,6 @@
 var http = require('http');
 var express = require('express');
 var cors = require('cors');
-var s3 = require('s3');
 var dbc = require('./dbcontroller/main');
 var multer = require('multer');
 var fs = require('fs');
@@ -19,8 +18,6 @@ var storage = multer.memoryStorage()
 var upload = multer({ storage: storage });
 var s3Bucket = 'vicspicturestorage2';
 
-// var opsworks = require('opsworks');
-
 var knoxClient = require('knox').createClient({
 	key: process.env.S3_KEY,
 	secret: process.env.S3_SECRET,
@@ -30,22 +27,6 @@ var knoxClient = require('knox').createClient({
 });
 
 var memjsClient = memjs.Client.create();
-
-// var client = s3.createClient({
-//   maxAsyncS3: 20,     // this is the default 
-//   s3RetryCount: 3,    // this is the default 
-//   s3RetryDelay: 1000, // this is the default 
-//   multipartUploadThreshold: 20971520, // this is the default (20 MB) 
-//   multipartUploadSize: 15728640, // this is the default (15 MB) 
-//   s3Options: {
-//     accessKeyId: process.env.S3_KEY,
-//     secretAccessKey: process.env.S3_SECRET,
-//     signatureVersion: 'v4',
-//     region: 'eu-central-1'
-//     // any other options are passed to new AWS.S3() 
-//     // See: http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Config.html#constructor-property 
-//   },
-// });
 
 function GetDateTime() {
 
@@ -201,7 +182,6 @@ app.get("/testfile", function(req, res) {
   		}
   	}
 	knoxClient.list({ prefix: '' }, function(err, data){
-		// SendJson(data, res);
 		var key = data.Contents[0].Key
 		var split = key.split('/');
 		var filename = split[split.length-1];
