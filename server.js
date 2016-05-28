@@ -139,7 +139,7 @@ app.put("/file", upload.single("image"), function(req, res) {
 					Recursive();
 					return;
 				}
-				res.json({ result: 0, err });
+				res.json({ result: 0, data: err });
 				console.log(err);
 				return;
 			}
