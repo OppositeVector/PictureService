@@ -77,7 +77,7 @@ body {
 }
 
 #thumbnails .hidden {
-	/*display: none;*/
+	display: none;
 	width: 150px;
 	color: #000;
 	bottom: -75px;
