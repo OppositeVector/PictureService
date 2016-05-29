@@ -105,7 +105,7 @@ app.controller("UploadController", ['$http', '$scope', 'fileUpload', function($h
         console.log($scope.model.file);
         if($scope.model.file && $scope.model.author && $scope.model.title) {
             if(($scope.model.author.trim().length > 0) && ($scope.model.title.trim().length > 0)) {
-                fileUpload.uploadFileToUrl($scope.model, "/file", function() {
+                fileUpload.uploadFileToUrl($scope.model, "/pictures", function() {
                     setTimeout(function() {
                         ClearInput();
                         Refresh($http);
