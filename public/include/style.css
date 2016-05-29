@@ -10,10 +10,16 @@ li {
 }
 
 body {
-	background-color: #c3d4e3;
+	background: linear-gradient(90deg, #c3d4e3 0%,#89aab7 100%);
+	/*background-color: #c3d4e3;*/
 	color: #ffffff;
 	font-family: arial;
-	font-size: 10px;
+	font-size: 11px;
+	height: 100%;
+}
+
+.clear {
+	clear: both;
 }
 
 #wrapper {
@@ -21,16 +27,23 @@ body {
 	width: 1024px;
 }
 
+.space {
+	margin-top: 7px;
+	margin-bottom: 7px;
+	height: 1px;
+	background-image: url("./LightDivider.png");
+	background-size: 100%;
+}
+
 #buttons {
 	padding: 20px;
+	margin: auto;
+	width: 680px;
+	overflow: hidden;
 }
 
 #buttons input {
 	margin-right: 15px;
-}
-
-#thumbnails {
-
 }
 
 #thumbnails .picblock {
@@ -41,30 +54,77 @@ body {
 	padding: 10px;
 }
 
-#thumbnails p {
-	text-align: center;
-
-}
-
-#thumbnails .hidden {
-	display: none;
+#thumbnails .picblock a {
+	position: absolute;
+	display: block;
 	width: 150px;
+	height: 150px;
 }
 
-#thumbnails .hidden button {
-	width: 72px;
-}
-
-#thumbnails img {
+#thumbnails .picblock img {
+	position: absolute;
 	display: block;
 	margin-right: auto;
 	margin-left: auto;
+	z-index: -1;
+}
+
+#thumbnails p {
+
+	text-align: center;
+	z-index: 100;
+	text-shadow: 1px 1px 3px #000;
+}
+
+#thumbnails .hidden {
+	/*display: none;*/
+	width: 150px;
+	color: #000;
+	bottom: -75px;
+	position: relative;
+}
+
+#thumbnails .hidden button {
+	width: 70px;
+	padding: 0;
+	margin: 0;
+	border: 0;
+	background-color: #fff;
+	opacity: 0.4;
+	border: 2px solid #100037;
+	border-radius: 2px;
+	float right;
+}
+
+#thumbnails .hidden button:hover {
+	cursor: pointer;
+	opacity: 0.8;
 }
 
 #thumbnails .picblock:hover .hidden {
 	display: block;
 }
 
-.clear {
-	clear: both;
+.replaceButtomWrapper {
+	display: block;
+	width: 66px;
+	height: 18px;
+	overflow: hidden !important;
+	background-color: #fff;
+	opacity: 0.4;
+	font-size: 14px;
+	text-align: center;
+	float: left;
+	margin-right: 5px;
+	border: 2px solid #100037;
+	border-radius: 2px;
+}
+
+.replaceButtomWrapper:hover {
+	cursor: pointer;
+	opacity: 0.8;
+}
+
+.replaceButton {
+	display: none;
 }

@@ -182,26 +182,42 @@ app.delete('/pictures/:id', function(req, res) {
 
 app.put('/pictures/:id', upload.single('image'), function(req, res) {
 
-	var fileData = {
-		mimetype: req.file.mimetype,
-		encoding: req.file.encoding,
-		name: req.file.originalname,
-		created: false,
-		size: req.file.size
-	}
-	var sp = fileData.name.split('.');
-	fileData.extension = sp[sp.length - 1].toLowerCase();
+	console.log(req.file);
 
-	dbc.UpdateMetadata(req.params.id, fileData, function(err, results) {
+	var id = req.params.id;
+
+	dbc.GetMetadata(id, function(err, fileData) {
+
 		if(err) {
-			res.json({ results: 0, data: err});
+			res.json({ result: 0, data: "Faile to replace file, could not file id" + id + " in database"});
 			return;
 		}
-		res.json({ result: 1, data: 'Updating ' + id });
-		nodestalker.put(JSON.stringify({
-			jobType: 'createVersions',
-			fileid: id
-		}));
+
+		fileData.mimetype = req.file.mimetype;
+		fileData.encoding = req.file.encoding;
+		fileData.nam = req.file.originalname;
+		fileData.created = false;
+		fileData.size = req.file.size;
+		var sp = fileData.name.split('.');
+		fileData.extension = sp[sp.length - 1].toLowerCase();
+
+		knox.PutImage(fileData, imageTypes[0], req.file.buffer, function(err, msg) {
+			if(err) {
+				res.json({ result: 0, msg: "Failed to update file", data: err });
+				return;
+			}
+			dbc.UpdateMetadata(id, fileData, function(err, results) {
+				if(err) {
+					res.json({ results: 0, data: err});
+					return;
+				}
+				res.json({ result: 1, data: 'Updating ' + id });
+				nodestalker.put(JSON.stringify({
+					jobType: 'createVersions',
+					fileid: id
+				}));
+			});
+		});
 	});
 
 });

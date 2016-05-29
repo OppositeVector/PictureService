@@ -27,13 +27,13 @@ module.exports = function(bucket, region) {
 
 		var fullPath = fileData.s3Path + '/' + type;
 		var req = knoxClient.put(fullPath, {
-		    'Content-Length': fileData.size,
+		    'Content-Length': buffer.length,
 		    'Content-Type': fileData.mimetype,
 		    /*'x-amz-acl': 'public-read'*/
 		});
 		req.on('response', function(res) {
 			if (res.statusCode != 200) {
-				var error = { tag: iTAG, err: 'Could not write file ' + fullPath + ' to storage, status code:' + kres.statusCode };
+				var error = { tag: iTAG, err: 'Could not write file ' + fullPath + ' to storage, status code:' + res.statusCode };
 				DoError(error, cb);
 			} else {
 				var str = 'File written to ' + req.url;
@@ -52,7 +52,7 @@ module.exports = function(bucket, region) {
 
 		var iTAG = TAG + ": GetImage";
 
-		var file = new Buffer(fileData.size);
+		var file = new Buffer(10485760);
 		var count = 0;
 		knoxClient.get(fileData.s3Path + '/' + type).on('response', function(stream) {
 			if(stream.statusCode != 200) {
@@ -63,7 +63,7 @@ module.exports = function(bucket, region) {
 	            	chunk.copy(file, count);
 	            	count += chunk.length;
 	            });
-	            stream.on('end', function(chunk) { 
+	            stream.on('end', function() { 
 	            	var fixed = new Buffer(count);
 	            	file.copy(fixed);
 	            	if(cb != null) {
