@@ -9,6 +9,7 @@
   "author": "Victor and Blah",
   "license": "BSD-2-Clause",
   "dependencies": {
+    "aws-sdk": "^2.3.16",
     "body-parser": "^1.15.1",
     "cors": "^2.7.1",
     "express": "~4.13.4",

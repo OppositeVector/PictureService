@@ -1,31 +1,33 @@
 <!Doctype html>
 <html ng-app="pictureApp">
     <head>
-        
         <link rel="stylesheet" type="text/css" href="include/style.css">
-
+        <script type="text/javascript" src="include/jquery-2.1.1.min.js"></script>
     </head>
     <body>
-        <div ng-controller="ThumbnailController">
-            <ul>
-                <li ng-repeat="datum in data">
-                    <a href="{{datum.url}}">
-                        <img height=100 width=100 ng-src="{{datum.url}}" />
-                        <!--<br />Id : {{datum.id}}
-                        <br />Views : {{datum.views}}-->
+        <div id="wrapper">
+            <div id="buttons" ng-controller="UploadController">
+                <!--<a>{{name}}</a>
+                <button ng-click="TestButton()">SendRequestToServer</button> -->
+                <input type='file' name='doc' file-model='model.file'/>
+                <label>Title: <input type='text' name='title' ng-model='model.title'/><label>
+                <label>Author: <input type='text' name='author' ng-model='model.author'/></label>
+                <button ng-click="UploadFile();">Upload</button>
+            </div>
+            <div id="thumbnails" ng-controller="ThumbnailController">
+                <div class="picblock" ng-repeat="pic in model.pics">
+                    <a href="/pictures/{{pic.id}}/original">
+                        <p>{{pic.title}} by {{pic.author}}</p>
+                        <img ng-src="/pictures/{{pic.id}}/thumbnail"/>
                     </a>
-                </li>
-            </ul>
-            <input type='file' onchange="angular.element(this).scope().imageUpload(this)" />
+                    <div class="hidden">
+                        <button ng-click="DeleteFile(pic.id);">Delete</button>
+                        <button>Replace</button>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div ng-controller="UploadController">
-            <!--<a>{{name}}</a>
-            <button ng-click="TestButton()">SendRequestToServer</button> -->
-            <input type='file' name='doc' file-model='model.file'/>
-            <button ng-click="UploadFile()">Submit</button>
-        </div>
-        
     </body>
-    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.1/angular.min.js"></script>
+    <script type="text/javascript" src="include/angular.min.js"></script>
     <script type="text/javascript" src="pictureClient.js"></script>
 </html>

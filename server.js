@@ -6,29 +6,40 @@ var multer = require('multer');
 var fs = require('fs');
 var GUID = require('guid');
 var bodyParser = require('body-parser');
-var memcached = require('memcached');
-var memcachedBinary = require('memcached-binary');
+// var memcached = require('memcached');
+// var memcachedBinary = require('memcached-binary');
+var knoxModule = require('./simpleknox');
+var cacheModule = require('./simplecache');
 
-var bs = require('nodestalker'),
-    client = bs.Client('ec2-54-93-124-121.eu-central-1.compute.amazonaws.com:11300');
+var bs = require('nodestalker');
+var nodestalker = bs.Client(process.env.WORKER_ADDRESS + ":11300");
 
-client.use('default');
+nodestalker.use('default');
 
-var lfs = "localfilestore";
+// var lfs = "localfilestore";
 var storage = multer.memoryStorage()
 var upload = multer({ storage: storage });
-var s3Bucket = 'vicspicturestorage2';
+// var s3Bucket = 'vicspicturestorage2';
 
-var knoxClient = require('knox').createClient({
-	key: process.env.S3_KEY,
-	secret: process.env.S3_SECRET,
-	bucket: s3Bucket,
-	signatureVersion: 'v4',
-    region: 'us-standard'
-});
+// var knoxClient = require('knox').createClient({
+// 	key: process.env.S3_KEY,
+// 	secret: process.env.S3_SECRET,
+// 	bucket: s3Bucket,
+// 	signatureVersion: 'v4',
+//     region: 'us-standard'
+// });
 
-var memcachedClient = new memcached('localhost:11211');
-var binaryClient = new memcachedBinary('localhost:11211', { use_buffers: true });
+var knox = new knoxModule('vicspicturestorage2', 'us-standard');
+var cache = new cacheModule(knox, dbc);
+
+// var memcachedClient = new memcached('localhost:11211');
+// var binaryClient = new memcachedBinary('localhost:11211', { use_buffers: true });
+
+var imageTypes = [
+	'original',
+	'web',
+	'thumbnail'
+]
 
 function GetDateTime() {
 
@@ -55,19 +66,6 @@ function GetDateTime() {
 
 }
 
-function SendJson(object, res) {
-
-	res.header('Access-Control-Allow-Methods', 'GET, POST');
-	res.header('Access-Control-Allow-Origin', 'http://localhost');
-	res.header('Access-Control-Allow-Headers', 'Content-Type, *');
-	app.set('json spaces',4);
-	res.set('Content-Type','application/json');
-	res.status(200);
-	// console.log(JSON.stringify(object));
-	res.json(object);
-	// res.send(object);
-}
-
 var app = express();
 
 app.use(cors());
@@ -75,144 +73,40 @@ app.use('/', express.static('./public'));
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.get('/pictures/:id/:type', function(req, res) {
+
 	var id = req.params.id;
 	var type = req.params.type;
-	var data = {  };
 
-	binaryClient.get(id + type, null, function(err, file) {
+	cache.GetImage(id, type, function(err, data) {
 		if(err) {
-			console.log(err);
+			res.json({ result: 0, data: err });
 		} else {
-			if(file == null) {
-				dbc.GetMetadata(id, function(err, fileData) {
-					if(err) {
-						res.json({ result: 0, data: err });
-						return;
-					}
-					if(fileData != null) {
-						var file = new Buffer(fileData.size);
-						var count = 0;
-						knoxClient.get(fileData.s3Path + '/' + type).on('response', function(stream) {
-			                if(stream.statusCode == 200) {
-			                    stream.on('data', function(chunk) { 
-			                    	chunk.copy(file, count);
-			                    	count += chunk.length;
-			                    });
-			                    stream.on('end', function(chunk) { 
-			                    	var fixed = new Buffer(count);
-			                    	file.copy(fixed);
-									binaryClient.set(id + type, fixed, { lifetime: 300 }, function(err) {
-			                    		if(err) {
-			                    			res.json({ result: 0, data: 'Internal caching error, please try again later'});
-			                    			return;
-			                    		}
-			                    		memcachedClient.set(id + type + 'data', { mimetype: fileData.mimetype, size: count }, 300, function(err) {
-			                    			if(err) {
-			                    				res.json({ result: 0, data: 'Internal caching error, please try again later'});
-			                    				return;
-			                    			}
-			                    			res.setHeader('Content-Type', fileData.mimetype);
-			                    			res.setHeader('Content-Length', count);
-				                    		res.status(200);
-				                    		res.write(fixed);
-				                    		res.end();
-				                    		// res.end(file, 'binary');
-			                    		});
-		                    		});
-			                    });
-			                } else {
-			                    res.json({result: 0, data: 'Could not find file'});
-			                }
-			            }).end();
-					} else {
-						res.json({result: 0, data: 'Could not find file'});
-					}
-				});
-
-			} else {
-				// res.json(fileBlock);
-				memcachedClient.get(id + type + 'data', function(err, data) {
-					if(err) {
-						res.json({ result: 0, data: 'Internat caching error, please try again later'});
-						return;
-					}
-					console.log(file.constructor);
-					console.log(data);
-					res.status(200);
-					res.setHeader('Content-Type', data.mimetype);
-					res.setHeader('Content-Length', data.size);
-					res.write(file);
-					res.end();
-					// res.end(file, 'binary');
-					// res.json(file);
-				});
-				
-			}
+			res.setHeader('Content-Type', data.mimetype);
+			res.setHeader('Content-Length', data.size);
+    		res.status(200);
+    		res.write(data.file);
+    		res.end();
 		}
 	});
 
-	// memcachedClient.set('test', 'asdfasdfasdfasdf', 600, function(err) {
-	// 	if(err) {
-	// 		console.log(err);
-	// 	} else {
-	// 		memcachedClient.get('test', function(err, val) {
-	// 			if(err) {
-	// 				console.log(err);
-	// 			} else {
-	// 				console.log(val);
-	// 			}
-	// 		});
-	// 	}
-	// });
-
-	// memjsClient.set("myVal", "alskdjfalskdjflkasjdflkajsdf", function(err, val){
-	// 	if(err) {
-	// 		console.log(err);
-	// 	}
-	// 	console.log("Saved " + val);
-	// }, 600);
-
-	// memjsClient.get("myVal", function(pic) {
-	// 	console.log(pic);
-	// 	res.status(200);
-	// 	res.send(pic);
-	// })
 });
 
-app.get('/TestKnox', function(req, res) {
-
-	var object = { foo: "bar" };
-	var string = JSON.stringify(object);
-	var knoxReq = knoxClient.put('/test/obj.json', {
-	    'Content-Length': Buffer.byteLength(string),
-	  	'Content-Type': 'application/json',
-	  	'x-amz-acl': 'public-read',
-	});
-	knoxReq.on('response', function(knoxRes) {
-		res.json(knoxRes.statusCode);
-	});
-	knoxReq.end(string);
-
-});
-
-app.get('/Files', function(req, res) {
-	var params = { s3Params: {
-    	Bucket: s3Bucket,
-    	// other options supported by putObject, except Body and ContentLength.
-    	// See: http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putObject-property
-  		}
-  	}
-	knoxClient.list({ prefix: '' }, function(err, data){
-		SendJson(data, res);
+app.get("/pictures", function(req, res) {
+	dbc.GetAllIds(function(err, images) {
+		if(err) {
+			res.json({ result: 0, data: err });
+		} else {
+			res.json({ result: 1, data: images });
+		}
 	});
 });
 
-app.put("/file", upload.single("image"), function(req, res) {
-	console.log(req.file);
-	console.log(req.body);
+app.post("/pictures", upload.single("image"), function(req, res) {
+
+	// console.log(req.file);
+	// console.log(req.body);
 
 	var fileData = {
-		id: GUID.raw(),
 		mimetype: req.file.mimetype,
 		encoding: req.file.encoding,
 		name: req.file.originalname,
@@ -225,14 +119,14 @@ app.put("/file", upload.single("image"), function(req, res) {
 
 	var sp = fileData.name.split('.');
 	fileData.extension = sp[sp.length - 1].toLowerCase();
-	fileData.s3Path = '/images/' + fileData.id;
-
-	// res.json({ result: 1, data: "yay !" });
-
+	
 	var tries = 0;
 	function Recursive() {
+		fileData.id = GUID.raw();
+		fileData.s3Path = '/images/' + fileData.id;
 		dbc.CreateMetadata(fileData, function(err, results) {
 			if(err) {
+				// Try several times as there might be a guid conflict
 				++tries;
 				if(tries < 5) {
 					Recursive();
@@ -242,34 +136,80 @@ app.put("/file", upload.single("image"), function(req, res) {
 				console.log(err);
 				return;
 			}
-			var kreq = knoxClient.put(fileData.s3Path + '/original', {
-			    'Content-Length': req.file.size,
-			    'Content-Type': fileData.mimetype,
-			    'x-amz-acl': 'public-read'
-			});
-			kreq.on('response', function(kres) {
-				console.log(kres.statusCode);
-				if (200 == kres.statusCode) {
-					console.log('saved to %s', kreq.url);
-					client.put(JSON.stringify({ 
-						jobType: 'createVersions', 
-						fileid: fileData.id
-					}));
-					res.json({ result: 1, data: fileData });
-				} else {
-					var errs = [ "Could not write file to storage, status code:" + kres.statusCode ]
+			knox.PutImage(fileData, imageTypes[0], req.file.buffer, function(err, msg) {
+				if(err) {
+					var errs = [ err ];
 					dbc.RemoveMetadata(fileData.id, function(err) {
 						if(err) {
 							errs.push(err);
 						}
 						res.json({ result: 0, data: errs });
+						console.log(errs);
 					});
+					return;
 				}
+				nodestalker.put(JSON.stringify({ 
+					jobType: 'createVersions', 
+					fileid: fileData.id
+				}));
+				res.json({ result: 1, data: fileData });
 			});
-			kreq.end(req.file.buffer);
 		});
 	}
 	Recursive();
+
+});
+
+app.delete('/pictures/:id', function(req, res) {
+
+	var id = req.params.id;
+
+	dbc.UpdateMetadata(id, { created: false }, function(err, results) {
+		if(err) {
+			res.json({ result: 0, data: err });
+			return;
+		}
+		res.json({result: 1, data: { id: id, messege: "Deleted" } });
+		nodestalker.put(JSON.stringify({ 
+			jobType: 'deleteFiles', 
+			fileid: id
+		}));
+	});
+
+});
+
+app.put('/pictures/:id', upload.single('image'), function(req, res) {
+
+	var fileData = {
+		mimetype: req.file.mimetype,
+		encoding: req.file.encoding,
+		name: req.file.originalname,
+		created: false,
+		size: req.file.size
+	}
+	var sp = fileData.name.split('.');
+	fileData.extension = sp[sp.length - 1].toLowerCase();
+
+	dbc.UpdateMetadata(req.params.id, fileData, function(err, results) {
+		if(err) {
+			res.json({ results: 0, data: err});
+			return;
+		}
+		res.json({ result: 1, data: 'Updating ' + id });
+		nodestalker.put(JSON.stringify({
+			jobType: 'createVersions',
+			fileid: id
+		}));
+	});
+
+});
+
+app.get('/cache/flush/:id', function(req, res) {
+
+	cache.RemoveImages(req.params.id, imageTypes, function() {
+		res.json({ result: 1, data: 'Flushed ' + req.params.id });
+	});
+
 });
 
 app.get("/testfile", function(req, res) {
@@ -296,6 +236,35 @@ app.get("/testfile", function(req, res) {
 	});
 
 	res.json({ result: 1, data: "trying ! " });
+
+});
+
+
+app.get('/Files', function(req, res) {
+	var params = { s3Params: {
+    	Bucket: s3Bucket,
+    	// other options supported by putObject, except Body and ContentLength.
+    	// See: http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putObject-property
+  		}
+  	}
+	knoxClient.list({ prefix: '' }, function(err, data){
+		SendJson(data, res);
+	});
+});
+
+app.get('/TestKnox', function(req, res) {
+
+	var object = { foo: "bar" };
+	var string = JSON.stringify(object);
+	var knoxReq = knoxClient.put('/test/obj.json', {
+	    'Content-Length': Buffer.byteLength(string),
+	  	'Content-Type': 'application/json',
+	  	'x-amz-acl': 'public-read',
+	});
+	knoxReq.on('response', function(knoxRes) {
+		res.json(knoxRes.statusCode);
+	});
+	knoxReq.end(string);
 
 });
 

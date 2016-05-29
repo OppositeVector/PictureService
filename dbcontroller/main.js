@@ -18,82 +18,117 @@ con.once('open',function(err) {
 
 });
 
-var CreateMetadata = exports.CreateMetadata = function(data, callback) {
+function DoError(err, cb) {
+	if(cb != null) {
+		cb(err);
+	} else {
+		console.log(err);
+	}
+}
 
-	var iTag = TAG + ": CreateMetadata";
+var CreateMetadata = exports.CreateMetadata = function(data, cb) {
+
+	var iTAG = TAG + ": CreateMetadata";
 	metaModel.create(data, function(err, data) {
 		if(err) {
-			var error = { tag: iTag, data: err };
-			if(callback != null) {
-				callback(error);
-			} else {
-				console.log(error);
-			}
+			var error = { tag: iTAG, data: err };
+			DoError(error, cb);
 			return;
 		}
-		if(callback != null) {
-			callback(null, data);
+		if(cb != null) {
+			cb(null, data);
 		}
 	});
 
 }
 
-var WriteMetadata = exports.WriteMetadata = function(data, callback) {
+var WriteMetadata = exports.WriteMetadata = function(data, cb) {
 
-	var iTag = TAG + ": WriteMetadata";
+	var iTAG = TAG + ": WriteMetadata";
+
 	metaModel.findOneAndUpdate({ id: data.id }, data, { upsert:true }, function(err, result) {
 		if(err) {
-			var error = {
-				tag: iTag,
-				data: err
-			}
-			if(callback != null) {
-				callback(error);
-			} else {
-				console.log(error);
-			}
+			var error = { tag: iTAG, data: err };
+			DoError(error, cb);
 			return;
 		}
-		if(callback != null) {
-			callback(null, result);
+		if(cb != null) {
+			cb(null, result);
 		}
 	});
 
 }
 
-var RemoveMetadata = exports.RemoveMetadata = function(id, callback) {
+var RemoveMetadata = exports.RemoveMetadata = function(id, cb) {
 
-	var iTag = TAG + ": RemoveMetadata";
+	var iTAG = TAG + ": RemoveMetadata";
+
 	metaModel.remove({ id: id }, function(err) {
 		if(err) {
-			var error = { tag: iTag, data: err };
-			if(callback != null) {
-				callback(error);
-			} else {
-				console.log(err);
-			}
+			var error = { tag: iTAG, data: err };
+			DoError(error, cb);
 		} else {
-			callback();
+			if(cb != null) {
+				cb();
+			}
 		}
 	});
 
 }
 
-var GetMetadata = exports.GetMetadata = function(id, callback) {
+var GetMetadata = exports.GetMetadata = function(id, cb) {
 
-	var iTag = TAG + ": GetMetadata";
+	var iTAG = TAG + ": GetMetadata";
+
+	if(cb == null) {
+		console.log(iTAG + ": No callback provided");
+		return;
+	}
+
 	metaModel.findOne({ id: id }, function(err, data) {
 		if(err) {
-			var errors = { tag: iTag, data: err };
-			if(callback != null) {
-				callback(errors);
-			} else {
-				errors.data += ", Also no callback provided for get call";
-				console.log(errors);
-			}
+			var error = { tag: iTAG, data: err };
+			cb(error);
 			return;
 		}
-		callback(null, data);
+		cb(null, data);
+	});
+
+}
+
+var GetAllIds = exports.GetAllIds = function(cb) {
+
+	var iTAG = TAG + ': GetAllIds';
+
+	if(cb == null) {
+		console.log(iTAG + ": No callback provided");
+		return;
+	}
+
+	metaModel.find({ created: true }, 'id author title', function(err, data) {
+		if(err) {
+			var error = { tag: iTAG, data: err }
+			cb(error);
+			return;
+		}
+		cb(null, data);
+	});
+
+}
+
+var UpdateMetadata = exports.UpdateMetadata = function(id, data, cb) {
+
+	var iTAG = TAG + ": UpdateMetadata";
+
+	metaModel.findOneAndUpdate({ id: id }, data, function(err, results) {
+		if(err) {
+			var error = { tag: iTAG, data: err };
+			DoError(error, cb);
+			return;
+		}
+		if(cb != null) {
+			cb(null, results);
+		}
 	});
 
 }
