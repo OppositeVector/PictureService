@@ -25,6 +25,7 @@ body {
 #wrapper {
 	margin: auto;
 	width: 1024px;
+	transition: 0.3s ease;
 }
 
 .space {
@@ -67,21 +68,34 @@ body {
 	margin-right: auto;
 	margin-left: auto;
 	z-index: -1;
+	box-shadow: 3px 2px 3px 2px rgba(0,0,0,0.75);
+	opacity: 1;
+	transition: opacity 0.3s ease;
 }
 
-#thumbnails p {
+#thumbnails .picblock img.hide {
+	opacity: 0;
+}
 
+#thumbnails .hidden {
+	opacity: 0;
+	width: 150px;
+	position: relative;
+	transition: opacity 0.3s ease;
+}
+
+#thumbnails .hidden:hover {
+	opacity: 1;
+}
+
+#thumbnails .hidden p {
 	text-align: center;
 	z-index: 100;
 	text-shadow: 1px 1px 3px #000;
 }
 
-#thumbnails .hidden {
-	display: none;
-	width: 150px;
-	color: #000;
-	bottom: -75px;
-	position: relative;
+#thumbnails .hidden p + p + p {
+	margin-bottom: 90px;
 }
 
 #thumbnails .hidden button {
@@ -93,7 +107,7 @@ body {
 	opacity: 0.4;
 	border: 2px solid #100037;
 	border-radius: 2px;
-	float right;
+	float: right;
 }
 
 #thumbnails .hidden button:hover {
@@ -118,6 +132,7 @@ body {
 	margin-right: 5px;
 	border: 2px solid #100037;
 	border-radius: 2px;
+	color: #000;
 }
 
 .replaceButtomWrapper:hover {

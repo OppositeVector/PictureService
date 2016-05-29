@@ -18,19 +18,20 @@
             <div id="thumbnails" ng-controller="ThumbnailController">
                 <div class="picblock" ng-repeat="pic in model.pics">
                     <a href="/pictures/{{pic.id}}/original">
-                        <img ng-src="/pictures/{{pic.id}}/thumbnail" style-parent/>
+                        <img class="hide" ng-src="/pictures/{{pic.id}}/thumbnail" style-parent/>
                     </a>
-                    <p><b>{{pic.title}}</b></p>
-                    <p>by</p>
-                    <p>{{pic.author}}</p>
-                    <div class="hidden">
+                    <a class="hidden" href="/pictures/{{pic.id}}/original">
+                        <p><b>{{pic.title}}</b></p>
+                        <p>by</p>
+                        <p>{{pic.author}}</p>
                         <button ng-click="DeleteFile(pic.id);">Delete</button>
                         <label class="replaceButtomWrapper">
                             <input class="replaceButton" type="file" ng-click="SetId(pic.id);" file-model-imidiate='model.replace'/>
                             Replace
                         </label>
+                        <div class="clear"></div>
                         <!-- <button ng-click="">Replace</button> -->
-                    </div>
+                    </a>
                 </div>
             </div>
         </div>

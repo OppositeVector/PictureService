@@ -191,6 +191,7 @@ app.directive('styleParent', function(){
                 var left = (150 - w) / 2;
                 var top = (150 - h) / 2;
                 elem.css({ 'margin-left': left.toString() + 'px', 'margin-top': top.toString() + 'px' });
+                elem.toggleClass('hide');
 
             });
         }
