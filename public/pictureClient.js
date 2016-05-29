@@ -4,35 +4,50 @@ var model = { file: null, pics: [] };
 var refreshWait = 5000;
 var timeoutId = null;
 var http;
+var focused = true;
 
 function OnFocus() {
+    focused = true;
     if(timeoutId == null) {
-        timeoutId = setTimeout(Refresh, refreshWait);
+        Refresh();
     }
+    console.log("Focus");
 }
 
 function OnBlur() {
-    if(timeoutId != null) {
-        clearTimeout(timeoutId);
-        timeoutId = null;
-    }
+    focused = false;
+    console.log("Blur");
 }
 
-window.addEventListener("focus", OnFocus, false);
-window.addEventListener("blur", OnBlur, false);
+window.onblur = OnBlur;
+window.onfocus = OnFocus;
+// window.addEventListener("focus", OnFocus, false);
+// window.addEventListener("blur", OnBlur, false);
 
 function Refresh() {
 
-    timeoutId = setTimeout(Refresh, refreshWait);
-
-    http.get('pictures').success(function(ids) {
-        if(ids.result == 1) {
-            model.pics = [];
-            for(var i = 0; i < ids.data.length; ++i) {
-                model.pics.push(ids.data[i]);
+    http.get('/pictures').success(function(response, status, headers, config) {
+        if(status == 200) {
+            if(response.result == 1) {
+                model.pics = [];
+                for(var i = 0; i < response.data.length; ++i) {
+                    model.pics.push(response.data[i]);
+                }
+            } else {
+                console.log(response.data);
             }
+        }
+        if(focused == true) {
+            timeoutId = setTimeout(Refresh, refreshWait);
         } else {
-            console.log(ids.data);
+            timeoutId = null;
+        }
+        
+    }).error(function(err, status, headers, config) {
+        if(focused == true) {
+            timeoutId = setTimeout(Refresh, refreshWait);
+        } else {
+            timeoutId = null;
         }
     });
 
@@ -88,7 +103,7 @@ var images = [];
 app.controller("ThumbnailController", function($http, $scope){
     $scope.data = images;
     $scope.model = model;
-    Refresh($http);
+    http = $http;
     $scope.DeleteFile = function(id) {
         console.log("Deleteing " + id);
         $http.delete("/pictures/" + id).success(function(response, status, headers, config) {
@@ -98,11 +113,11 @@ app.controller("ThumbnailController", function($http, $scope){
             console.log(err);
         });
     }
+    Refresh();
 });
 
 app.controller("UploadController", ['$http', '$scope', 'fileUpload', function($http, $scope, fileUpload){
     $scope.model = model;
-    http = $http;
     $scope.UploadFile = function() {
         console.log($scope.model.file);
         if($scope.model.file && $scope.model.author && $scope.model.title) {
@@ -121,7 +136,6 @@ app.controller("UploadController", ['$http', '$scope', 'fileUpload', function($h
         }
     }
     ClearInput();
-    Refresh();
 }]);
 
 function NoInfo() {
