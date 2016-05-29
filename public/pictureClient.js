@@ -91,9 +91,11 @@ app.controller("ThumbnailController", function($http, $scope){
     Refresh($http);
     $scope.DeleteFile = function(id) {
         console.log("Deleteing " + id);
-        $http.get("/deletefile/" + id).success(function(data) {
+        $http.delete("/pictures/" + id).success(function(response, status, headers, config) {
             Refresh($http);
-            console.log(data);
+            console.log(response);
+        }).error(function(err, status, headers, config) {
+            console.log(err);
         });
     }
 });

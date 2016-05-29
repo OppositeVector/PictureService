@@ -82,8 +82,8 @@ module.exports = function(bucket, region) {
 		var index = 0;
 		function Recursive() {
 			if(index < types.length) {
-				knoxClient.del(fileData.s3Path + '/' + types[i]).on('response', function(res){
-	                console.log('delete ' + fileData.s3Path + '/' + types[i] + ' -- ' + res.statusCode);
+				knoxClient.del(fileData.s3Path + '/' + types[index]).on('response', function(res){
+	                console.log('delete ' + fileData.s3Path + '/' + types[index] + ' -- ' + res.statusCode);
 	                ++index;
 	                Recursive();
             	}).end();

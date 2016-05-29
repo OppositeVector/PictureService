@@ -164,6 +164,8 @@ app.delete('/pictures/:id', function(req, res) {
 
 	var id = req.params.id;
 
+	console.log("Deleting " + id);
+
 	dbc.UpdateMetadata(id, { created: false }, function(err, results) {
 		if(err) {
 			res.json({ result: 0, data: err });

@@ -71,7 +71,7 @@ module.exports = function(knox, dbc) {
 		var index = 0;
 		function Recursive() {
 			if(index < types.length) {
-				memcached.del(id + types[i] + "data", function(err) {
+				memcached.del(id + types[index] + "data", function(err) {
 					++index;
 					Recursive();
 				});
