@@ -58,7 +58,7 @@ module.exports = function(knox, dbc) {
 						});
 					} else {
 						data.file = file;
-						cb(data);
+						cb(null, data);
 					}
 				});
 			}
